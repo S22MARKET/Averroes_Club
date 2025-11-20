@@ -278,7 +278,7 @@
 
             if (password) {
                 // السماح بكلمتي مرور للتسهيل
-                if (password === 'admin123' || password === 'admin') {
+                if (password === '' || password === ' كلمة سر المشرفين ') {
                     switchView('admin');
                     loadAdminDashboard();
                     const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
