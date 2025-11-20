@@ -8,12 +8,25 @@
     <!-- المكتبات الخارجية -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #f3f4f6; }
+        /* فرض الخط ونمط الأرقام الإنجليزي (123) بدلاً من الهندي (١٢٣) */
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background-color: #f3f4f6; 
+        }
+        
+        /* فئة خاصة لفرض الأرقام الإنجليزية */
+        .num-font, input[type="tel"], input[type="number"], .chart-number {
+            font-family: 'Roboto', sans-serif !important;
+            direction: ltr;
+            display: inline-block;
+        }
+
+        /* تنسيقات التحميل والحركة */
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .fade-in { animation: fadeIn 0.5s ease-in-out; }
@@ -22,14 +35,21 @@
         .password-container { position: relative; width: 80%; margin: 0 auto; }
         .password-toggle { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; z-index: 10; }
         
-        /* تحسين عرض الجدول في الموبايل */
         .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        /* تنسيقات الطباعة (للتقرير PDF) */
+        @media print {
+            body * { visibility: hidden; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; background: white; padding: 20px; direction: rtl; }
+            .no-print { display: none !important; }
+        }
     </style>
 </head>
 <body class="text-gray-800 selection:bg-blue-200">
 
     <!-- القائمة العلوية -->
-    <nav class="bg-white shadow-md sticky top-0 z-50">
+    <nav class="bg-white shadow-md sticky top-0 z-50 no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
@@ -86,115 +106,192 @@
                 <div class="lg:col-span-1 space-y-4">
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden sticky top-24">
                         <button onclick="showAdminTab('dashboard')" class="w-full text-right px-6 py-4 hover:bg-gray-50 border-b border-gray-100 transition flex items-center admin-tab-btn active" data-tab="dashboard">
-                            <i class="fas fa-chart-pie ml-3 text-blue-500 w-6"></i> الإحصائيات
+                            <i class="fas fa-chart-pie ml-3 text-blue-500 w-6"></i> الإحصائيات والتحليل
                         </button>
-                        <button onclick="showAdminTab('add-content')" class="w-full text-right px-6 py-4 hover:bg-gray-50 border-b border-gray-100 transition flex items-center admin-tab-btn" data-tab="add-content">
-                            <i class="fas fa-plus-circle ml-3 text-green-500 w-6"></i> إضافة محتوى
+                        <button onclick="showAdminTab('content-manage')" class="w-full text-right px-6 py-4 hover:bg-gray-50 border-b border-gray-100 transition flex items-center admin-tab-btn" data-tab="content-manage">
+                            <i class="fas fa-edit ml-3 text-green-500 w-6"></i> إدارة المحتوى
                         </button>
                         <button onclick="showAdminTab('registrations')" class="w-full text-right px-6 py-4 hover:bg-gray-50 transition flex items-center admin-tab-btn" data-tab="registrations">
-                            <i class="fas fa-users ml-3 text-purple-500 w-6"></i> المسجلين
+                            <i class="fas fa-users ml-3 text-purple-500 w-6"></i> المسجلين والتقارير
                         </button>
                     </div>
                 </div>
 
                 <!-- المحتوى -->
                 <div class="lg:col-span-3">
+                    
                     <!-- تبويب الإحصائيات -->
                     <div id="tab-dashboard" class="space-y-6">
+                        <!-- بطاقات الملخص -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="bg-white p-6 rounded-xl shadow-sm border-r-4 border-blue-500 flex flex-col items-center">
+                            <div class="bg-white p-6 rounded-xl shadow-sm border-r-4 border-blue-500 flex flex-col items-center transform hover:scale-105 transition">
                                 <div class="text-gray-500 text-sm mb-1">إجمالي الزيارات</div>
-                                <div class="text-3xl font-bold text-blue-600" id="total-views">0</div>
+                                <div class="text-3xl font-bold text-blue-600 num-font" id="total-views">0</div>
                             </div>
-                            <div class="bg-white p-6 rounded-xl shadow-sm border-r-4 border-green-500 flex flex-col items-center">
+                            <div class="bg-white p-6 rounded-xl shadow-sm border-r-4 border-green-500 flex flex-col items-center transform hover:scale-105 transition">
                                 <div class="text-gray-500 text-sm mb-1">المسجلين</div>
-                                <div class="text-3xl font-bold text-green-600" id="total-regs">0</div>
+                                <div class="text-3xl font-bold text-green-600 num-font" id="total-regs">0</div>
                             </div>
-                            <div class="bg-white p-6 rounded-xl shadow-sm border-r-4 border-purple-500 flex flex-col items-center">
+                            <div class="bg-white p-6 rounded-xl shadow-sm border-r-4 border-purple-500 flex flex-col items-center transform hover:scale-105 transition">
                                 <div class="text-gray-500 text-sm mb-1">الفعاليات</div>
-                                <div class="text-3xl font-bold text-purple-600" id="total-events">0</div>
+                                <div class="text-3xl font-bold text-purple-600 num-font" id="total-events">0</div>
                             </div>
                         </div>
-                        <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm">
-                            <canvas id="analyticsChart" height="250"></canvas>
+
+                        <!-- الرسوم البيانية -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- الرسم البياني الرئيسي -->
+                            <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm md:col-span-2">
+                                <h3 class="font-bold text-gray-700 mb-4 border-b pb-2">أداء الفعاليات (المشاهدات والتسجيلات)</h3>
+                                <canvas id="analyticsChart" height="250"></canvas>
+                            </div>
+                            
+                            <!-- تحليل التخصصات -->
+                            <div class="bg-white p-4 rounded-xl shadow-sm">
+                                <h3 class="font-bold text-gray-700 mb-4 text-sm border-b pb-2">توزيع المسجلين حسب التخصص</h3>
+                                <div class="h-64 relative">
+                                    <canvas id="specialtyChart"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- تحليل السنوات -->
+                            <div class="bg-white p-4 rounded-xl shadow-sm">
+                                <h3 class="font-bold text-gray-700 mb-4 text-sm border-b pb-2">توزيع المسجلين حسب السنة الدراسية</h3>
+                                <div class="h-64 relative">
+                                    <canvas id="yearChart"></canvas>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- تبويب إضافة محتوى -->
-                    <div id="tab-add-content" class="hidden bg-white p-6 md:p-8 rounded-xl shadow-sm">
-                        <h3 class="font-bold text-xl mb-6 border-b pb-4 text-gray-700">نشر فعالية جديدة</h3>
-                        <form id="create-event-form" class="space-y-5">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">العنوان <span class="text-red-500">*</span></label>
-                                    <input type="text" id="event-title" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+                    <!-- تبويب إدارة المحتوى (إضافة / تعديل / حذف) -->
+                    <div id="tab-content-manage" class="hidden space-y-8">
+                        <!-- نموذج الإضافة/التعديل -->
+                        <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm border-t-4 border-blue-500">
+                            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                                <h3 class="font-bold text-xl text-gray-800" id="form-title">نشر فعالية جديدة</h3>
+                                <button onclick="resetForm()" id="cancel-edit-btn" class="hidden text-sm text-red-500 hover:bg-red-50 px-3 py-1 rounded transition">إلغاء التعديل</button>
+                            </div>
+                            
+                            <form id="create-event-form" class="space-y-5">
+                                <input type="hidden" id="edit-event-id"> <!-- ID hidden field for editing -->
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label class="block text-sm font-bold text-gray-700 mb-2">العنوان <span class="text-red-500">*</span></label>
+                                        <input type="text" id="event-title" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-gray-700 mb-2">النوع</label>
+                                        <select id="event-type" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none bg-white">
+                                            <option value="course">دورة تدريبية</option>
+                                            <option value="event">ملتقى علمي</option>
+                                            <option value="news">خبر / إعلان</option>
+                                        </select>
+                                    </div>
                                 </div>
+                                
                                 <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">النوع</label>
-                                    <select id="event-type" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none bg-white">
-                                        <option value="course">دورة تدريبية</option>
-                                        <option value="event">ملتقى علمي</option>
-                                        <option value="news">خبر / إعلان</option>
-                                    </select>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">الوصف التفصيلي <span class="text-red-500">*</span></label>
+                                    <textarea id="event-desc" rows="4" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label class="block text-sm font-bold text-gray-700 mb-2">التوقيت <span class="text-red-500">*</span></label>
+                                        <input type="datetime-local" id="event-start" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none num-font">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-gray-700 mb-2">صورة الغلاف (اختياري)</label>
+                                        <input type="file" id="event-image" accept="image/*" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                        <input type="hidden" id="current-image-url">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 border-t pt-4">
+                                    <div>
+                                        <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-map-marker-alt ml-1 text-red-500"></i> رابط خرائط جوجل</label>
+                                        <input type="url" id="event-map" placeholder="https://maps.google.com/..." class="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none text-left" dir="ltr">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-link ml-1 text-blue-500"></i> رابط إضافي</label>
+                                        <input type="url" id="event-link" placeholder="رابط صفحة أو موقع" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none text-left" dir="ltr">
+                                    </div>
+                                </div>
+
+                                <button type="submit" id="submit-event-btn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-md flex justify-center gap-2 items-center">
+                                    <span id="submit-btn-text">نشر الفعالية</span>
+                                    <div id="upload-spinner" class="loader w-5 h-5 border-white border-t-transparent hidden"></div>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- قائمة الفعاليات الحالية للحذف والتعديل -->
+                        <div class="bg-white p-6 rounded-xl shadow-sm">
+                            <h3 class="font-bold text-xl mb-4 text-gray-700">الفعاليات المنشورة (تعديل / حذف)</h3>
+                            <div id="admin-events-list" class="space-y-4">
+                                <!-- سيتم ملء القائمة هنا -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- تبويب المسجلين والتقارير -->
+                    <div id="tab-registrations" class="hidden bg-white rounded-xl shadow-sm overflow-hidden min-h-[500px]">
+                        <div class="p-4 border-b bg-gray-50">
+                            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                                <h3 class="font-bold text-gray-700">سجل الحضور والمسجلين</h3>
+                                <div class="flex gap-2 w-full md:w-auto">
+                                    <button onclick="printReport()" class="flex-1 md:flex-none bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-lg text-sm shadow transition font-bold">
+                                        <i class="fas fa-file-pdf ml-1"></i> PDF / طباعة
+                                    </button>
+                                    <button onclick="fetchRegistrations()" class="bg-blue-500 text-white hover:bg-blue-600 px-3 py-2 rounded-lg text-sm shadow transition">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
                                 </div>
                             </div>
                             
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-2">الوصف التفصيلي <span class="text-red-500">*</span></label>
-                                <textarea id="event-desc" rows="4" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <!-- أدوات الفلترة -->
+                            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">التوقيت <span class="text-red-500">*</span></label>
-                                    <input type="datetime-local" id="event-start" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none">
+                                    <label class="text-xs font-bold text-gray-500 mb-1 block">فلترة حسب الفعالية:</label>
+                                    <select id="filter-event" onchange="applyFilters()" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 outline-none">
+                                        <option value="all">عرض جميع الفعاليات</option>
+                                    </select>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">صورة الغلاف (اختياري)</label>
-                                    <input type="file" id="event-image" accept="image/*" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                                    <p class="text-xs text-gray-500 mt-1">إذا لم يتم رفع صورة، سيتم استخدام صورة افتراضية.</p>
+                                    <label class="text-xs font-bold text-gray-500 mb-1 block">بحث سريع:</label>
+                                    <input type="text" id="filter-search" onkeyup="applyFilters()" placeholder="ابحث بالاسم أو الهاتف..." class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 outline-none">
                                 </div>
                             </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 border-t pt-4">
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-map-marker-alt ml-1 text-red-500"></i> رابط خرائط جوجل (اختياري)</label>
-                                    <input type="url" id="event-map" placeholder="https://maps.google.com/..." class="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none text-left" dir="ltr">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-link ml-1 text-blue-500"></i> رابط إضافي/تواصل (اختياري)</label>
-                                    <input type="url" id="event-link" placeholder="رابط صفحة، منشور، أو موقع" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none text-left" dir="ltr">
-                                </div>
-                            </div>
-
-                            <button type="submit" id="submit-event-btn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex justify-center gap-2 items-center">
-                                <span>نشر الفعالية</span>
-                                <div id="upload-spinner" class="loader w-5 h-5 border-white border-t-transparent hidden"></div>
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- تبويب المسجلين -->
-                    <div id="tab-registrations" class="hidden bg-white rounded-xl shadow-sm overflow-hidden">
-                        <div class="p-4 border-b flex justify-between items-center bg-gray-50">
-                            <h3 class="font-bold text-gray-700">قائمة المسجلين</h3>
-                            <button onclick="fetchRegistrations()" class="text-white bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded text-sm shadow transition"><i class="fas fa-sync-alt ml-1"></i> تحديث</button>
                         </div>
-                        <div class="table-container">
-                            <table class="w-full text-sm text-right whitespace-nowrap">
-                                <thead class="bg-gray-100 text-gray-600">
-                                    <tr>
-                                        <th class="px-4 py-3">الاسم</th>
-                                        <th class="px-4 py-3">التخصص</th>
-                                        <th class="px-4 py-3">السنة</th>
-                                        <th class="px-4 py-3">الهاتف 1</th>
-                                        <th class="px-4 py-3">الهاتف 2</th>
-                                        <th class="px-4 py-3">الفعالية</th>
-                                        <th class="px-4 py-3">وقت التسجيل</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="registrations-table-body" class="divide-y divide-gray-100"></tbody>
-                            </table>
+
+                        <!-- منطقة الطباعة والجدول -->
+                        <div id="print-area">
+                            <!-- ترويسة التقرير (تظهر فقط عند الطباعة) -->
+                            <div class="hidden print:block mb-8 text-center">
+                                <h1 class="text-2xl font-bold mb-2">تقرير المسجلين - ملتقى ابن رشد</h1>
+                                <p class="text-sm text-gray-500" id="print-date"></p>
+                            </div>
+
+                            <div class="table-container">
+                                <table class="w-full text-sm text-right whitespace-nowrap" id="regs-table">
+                                    <thead class="bg-gray-100 text-gray-600">
+                                        <tr>
+                                            <th class="px-4 py-3">#</th>
+                                            <th class="px-4 py-3">الاسم</th>
+                                            <th class="px-4 py-3">التخصص</th>
+                                            <th class="px-4 py-3">السنة</th>
+                                            <th class="px-4 py-3">الهاتف</th>
+                                            <th class="px-4 py-3">الفعالية</th>
+                                            <th class="px-4 py-3 no-print">التاريخ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="registrations-table-body" class="divide-y divide-gray-100"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="p-3 text-xs text-gray-400 text-center border-t">
+                            عدد النتائج: <span id="regs-count" class="font-bold num-font">0</span>
                         </div>
                     </div>
                 </div>
@@ -203,25 +300,19 @@
     </main>
 
     <!-- نافذة التفاصيل والتسجيل (Modal) -->
-    <div id="details-modal" class="fixed inset-0 bg-black bg-opacity-70 z-[100] hidden flex items-center justify-center backdrop-blur-sm p-4 sm:p-6">
+    <div id="details-modal" class="fixed inset-0 bg-black bg-opacity-70 z-[100] hidden flex items-center justify-center backdrop-blur-sm p-4 sm:p-6 no-print">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden relative flex flex-col md:flex-row animate-scaleIn">
             <button onclick="closeModal()" class="absolute top-4 left-4 bg-white/80 hover:bg-white text-gray-800 rounded-full w-10 h-10 flex items-center justify-center z-20 shadow-lg transition font-bold text-xl">&times;</button>
             
-            <!-- صورة المودال -->
             <div class="w-full md:w-5/12 h-48 md:h-auto relative bg-gray-100">
                 <img id="modal-img" src="" class="w-full h-full object-cover absolute inset-0">
             </div>
 
-            <!-- محتوى المودال -->
             <div class="w-full md:w-7/12 p-6 md:p-8 flex flex-col overflow-y-auto custom-scrollbar">
                 <div class="mb-6">
                     <h2 id="modal-title" class="text-2xl md:text-3xl font-bold mb-2 text-gray-800"></h2>
-                    <div id="modal-meta" class="flex flex-wrap gap-3 text-sm text-gray-500 mb-4">
-                        <!-- سيتم ملؤه بالتاريخ والروابط -->
-                    </div>
+                    <div id="modal-meta" class="flex flex-wrap gap-3 text-sm text-gray-500 mb-4"></div>
                     <div id="modal-desc" class="text-gray-600 leading-relaxed whitespace-pre-line"></div>
-                    
-                    <!-- روابط إضافية -->
                     <div id="modal-links" class="mt-4 flex gap-3 flex-wrap"></div>
                 </div>
 
@@ -242,6 +333,7 @@
                                 <option value="طب بشري">طب بشري</option>
                                 <option value="صيدلة">صيدلة</option>
                                 <option value="طب أسنان">طب أسنان</option>
+                                <option value="شبه طبي">شبه طبي</option>
                                 <option value="other">تخصص آخر...</option>
                             </select>
                             <i class="fas fa-chevron-down absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
@@ -266,8 +358,8 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <input type="tel" id="reg-phone" placeholder="رقم الهاتف (مطلوب)" required class="w-full bg-gray-50 border border-gray-200 rounded px-4 py-2.5 outline-none text-left" dir="ltr">
-                        <input type="tel" id="reg-phone2" placeholder="رقم هاتف إضافي (اختياري)" class="w-full bg-gray-50 border border-gray-200 rounded px-4 py-2.5 outline-none text-left" dir="ltr">
+                        <input type="tel" id="reg-phone" placeholder="رقم الهاتف (123...)" required class="w-full bg-gray-50 border border-gray-200 rounded px-4 py-2.5 outline-none text-left num-font" dir="ltr">
+                        <input type="tel" id="reg-phone2" placeholder="هاتف إضافي" class="w-full bg-gray-50 border border-gray-200 rounded px-4 py-2.5 outline-none text-left num-font" dir="ltr">
                     </div>
 
                     <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-md mt-2">تأكيد التسجيل</button>
@@ -278,8 +370,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, increment, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, increment, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // إعدادات Firebase (نفس الإعدادات السابقة)
         const firebaseConfig = {
             apiKey: "AIzaSyA_EahtfextyfV8e_6cds6yualy4xi0mik",
             authDomain: "averroesclubannaba.firebaseapp.com",
@@ -293,7 +386,15 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // رفع الصور (مع صورة افتراضية)
+        // متغيرات عامة
+        let eventsData = [];
+        let allRegistrations = [];
+        let statsChart = null;
+        let specialtyChart = null;
+        let yearChart = null;
+        let isEditMode = false;
+
+        // رفع الصور
         async function uploadImageToImgBB(file) {
             const formData = new FormData();
             formData.append('image', file);
@@ -304,48 +405,28 @@
             throw new Error('Image Upload Failed');
         }
 
-        // دالة تبديل حقل التخصص "آخر"
         window.toggleOtherInput = (select) => {
             const input = document.getElementById('reg-specialty-other');
             if(select.value === 'other') {
-                input.classList.remove('hidden');
-                input.required = true;
-                input.focus();
+                input.classList.remove('hidden'); input.required = true; input.focus();
             } else {
-                input.classList.add('hidden');
-                input.required = false;
+                input.classList.add('hidden'); input.required = false;
             }
         };
 
-        // تسجيل دخول المشرفين
+        // ==========================
+        // إدارة الدخول (Password 123)
+        // ==========================
         window.checkAdminAccess = async () => {
             const { value: password } = await Swal.fire({
                 title: 'دخول المشرفين',
-                html: `
-                    <div class="password-container">
-                        <input type="password" id="swal-password-input" class="swal2-input" placeholder="كلمة المرور">
-                        <span id="toggle-password" class="password-toggle"><i class="fas fa-eye"></i></span>
-                    </div>
-                `,
-                focusConfirm: false,
-                showCancelButton: true,
+                html: `<div class="password-container"><input type="password" id="swal-password-input" class="swal2-input num-font" placeholder="123"></div>`,
                 confirmButtonText: 'دخول',
-                cancelButtonText: 'إلغاء',
-                didOpen: () => {
-                    const input = document.getElementById('swal-password-input');
-                    const toggle = document.getElementById('toggle-password');
-                    toggle.addEventListener('click', () => {
-                        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-                        input.setAttribute('type', type);
-                        toggle.querySelector('i').classList.toggle('fa-eye');
-                        toggle.querySelector('i').classList.toggle('fa-eye-slash');
-                    });
-                },
                 preConfirm: () => document.getElementById('swal-password-input').value
             });
 
             if (password) {
-                if (password === '1234' || password === 'admin') { // غير كلمة السر لاحقاً
+                if (password === '123') { // تم توحيد كلمة المرور إلى 123
                     switchView('admin');
                     loadAdminDashboard();
                     const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
@@ -356,20 +437,23 @@
             }
         };
 
-        let eventsData = [];
-        let statsChart = null;
-
         window.showAdminTab = (tabId) => {
             document.querySelectorAll('.admin-tab-btn').forEach(btn => {
                 btn.classList.remove('bg-blue-50', 'text-blue-600', 'active');
                 if(btn.dataset.tab === tabId) btn.classList.add('bg-blue-50', 'text-blue-600', 'active');
             });
-            ['dashboard', 'add-content', 'registrations'].forEach(id => document.getElementById(`tab-${id}`).classList.add('hidden'));
+            ['dashboard', 'content-manage', 'registrations'].forEach(id => document.getElementById(`tab-${id}`).classList.add('hidden'));
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            
             if(tabId === 'registrations') fetchRegistrations();
+            if(tabId === 'content-manage') loadManageEventsList();
         };
 
-        // إضافة فعالية جديدة
+        // ==========================
+        // إدارة المحتوى (إضافة / تعديل / حذف)
+        // ==========================
+        
+        // التعامل مع النموذج
         document.getElementById('create-event-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submit-event-btn');
@@ -379,34 +463,149 @@
             btn.disabled = true; spinner.classList.remove('hidden');
 
             try {
-                // منطق الصورة الاختيارية
-                let imageUrl = "https://placehold.co/600x400/3b82f6/ffffff?text=Avverroes+Hub"; // صورة افتراضية
+                // التعامل مع الصورة
+                let imageUrl = document.getElementById('current-image-url').value || "https://placehold.co/600x400/3b82f6/ffffff?text=Event";
                 if(fileInput.files.length > 0) {
                     imageUrl = await uploadImageToImgBB(fileInput.files[0]);
                 }
 
-                await addDoc(collection(db, "events"), {
+                const eventData = {
                     title: document.getElementById('event-title').value,
                     type: document.getElementById('event-type').value,
                     description: document.getElementById('event-desc').value,
                     startDate: document.getElementById('event-start').value,
                     mapLink: document.getElementById('event-map').value || "",
                     extraLink: document.getElementById('event-link').value || "",
-                    imageUrl: imageUrl,
-                    views: 0, registrationsCount: 0, createdAt: serverTimestamp()
-                });
-                Swal.fire('تم', 'تم نشر الفعالية بنجاح', 'success');
-                e.target.reset(); loadEvents();
-            } catch (error) { Swal.fire('خطأ', 'حدث خطأ أثناء النشر: ' + error.message, 'error'); }
+                    imageUrl: imageUrl
+                };
+
+                if (isEditMode) {
+                    // وضع التعديل Update
+                    const eventId = document.getElementById('edit-event-id').value;
+                    await updateDoc(doc(db, "events", eventId), eventData);
+                    Swal.fire('تم', 'تم تعديل الفعالية بنجاح', 'success');
+                    resetForm();
+                } else {
+                    // وضع الإضافة Create
+                    eventData.views = 0;
+                    eventData.registrationsCount = 0;
+                    eventData.createdAt = serverTimestamp();
+                    await addDoc(collection(db, "events"), eventData);
+                    Swal.fire('تم', 'تم نشر الفعالية بنجاح', 'success');
+                    e.target.reset();
+                }
+                
+                loadManageEventsList(); // تحديث قائمة الإدارة
+            } catch (error) { Swal.fire('خطأ', 'حدث خطأ: ' + error.message, 'error'); }
             finally { btn.disabled = false; spinner.classList.add('hidden'); }
         });
 
-        // تحميل الإحصائيات
+        // عرض قائمة الفعاليات المصغرة للإدارة
+        window.loadManageEventsList = async () => {
+            const listContainer = document.getElementById('admin-events-list');
+            listContainer.innerHTML = '<div class="loader mx-auto"></div>';
+            
+            const q = query(collection(db, "events"), orderBy("createdAt", "desc"));
+            const snapshot = await getDocs(q);
+            listContainer.innerHTML = '';
+
+            snapshot.forEach(docSnapshot => {
+                const d = docSnapshot.data();
+                const el = document.createElement('div');
+                el.className = 'flex items-center justify-between bg-gray-50 p-4 rounded-lg border border-gray-200';
+                el.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <img src="${d.imageUrl}" class="w-16 h-16 object-cover rounded-md hidden sm:block">
+                        <div>
+                            <h4 class="font-bold text-gray-800">${d.title}</h4>
+                            <div class="text-xs text-gray-500 flex gap-3 mt-1">
+                                <span><i class="fas fa-eye"></i> <span class="num-font">${d.views || 0}</span></span>
+                                <span><i class="fas fa-users"></i> <span class="num-font">${d.registrationsCount || 0}</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="editEvent('${docSnapshot.id}')" class="bg-blue-100 text-blue-600 hover:bg-blue-200 p-2 rounded-lg transition" title="تعديل"><i class="fas fa-pen"></i></button>
+                        <button onclick="deleteEvent('${docSnapshot.id}')" class="bg-red-100 text-red-600 hover:bg-red-200 p-2 rounded-lg transition" title="حذف"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+                listContainer.appendChild(el);
+            });
+        };
+
+        // دالة التعديل - ملء النموذج
+        window.editEvent = async (id) => {
+            const snapshot = await getDocs(collection(db, "events"));
+            const event = snapshot.docs.find(d => d.id === id).data();
+            
+            if(!event) return;
+
+            document.getElementById('event-title').value = event.title;
+            document.getElementById('event-type').value = event.type;
+            document.getElementById('event-desc').value = event.description;
+            document.getElementById('event-start').value = event.startDate;
+            document.getElementById('event-map').value = event.mapLink || "";
+            document.getElementById('event-link').value = event.extraLink || "";
+            document.getElementById('current-image-url').value = event.imageUrl;
+            document.getElementById('edit-event-id').value = id;
+
+            // تغيير حالة الواجهة
+            isEditMode = true;
+            document.getElementById('form-title').innerText = 'تعديل الفعالية';
+            document.getElementById('submit-btn-text').innerText = 'حفظ التعديلات';
+            document.getElementById('submit-event-btn').classList.replace('bg-blue-600', 'bg-green-600');
+            document.getElementById('submit-event-btn').classList.replace('hover:bg-blue-700', 'hover:bg-green-700');
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+
+            // تمرير للأعلى
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // دالة الحذف
+        window.deleteEvent = async (id) => {
+            const result = await Swal.fire({
+                title: 'هل أنت متأكد؟',
+                text: "سيتم حذف الفعالية وجميع الإحصائيات المرتبطة بها!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'نعم، احذفها',
+                cancelButtonText: 'إلغاء'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    await deleteDoc(doc(db, "events", id));
+                    Swal.fire('تم الحذف!', 'تم حذف الفعالية.', 'success');
+                    loadManageEventsList();
+                } catch (e) {
+                    Swal.fire('خطأ', 'حدث خطأ أثناء الحذف', 'error');
+                }
+            }
+        };
+
+        window.resetForm = () => {
+            document.getElementById('create-event-form').reset();
+            isEditMode = false;
+            document.getElementById('form-title').innerText = 'نشر فعالية جديدة';
+            document.getElementById('submit-btn-text').innerText = 'نشر الفعالية';
+            document.getElementById('submit-event-btn').classList.replace('bg-green-600', 'bg-blue-600');
+            document.getElementById('submit-event-btn').classList.replace('hover:bg-green-700', 'hover:bg-blue-700');
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+            document.getElementById('current-image-url').value = "";
+        };
+
+        // ==========================
+        // لوحة المعلومات والتحليلات
+        // ==========================
         async function loadAdminDashboard() {
             const eventsSnap = await getDocs(collection(db, "events"));
             const regsSnap = await getDocs(collection(db, "registrations"));
-            let totalViews = 0, totalRegs = regsSnap.size, chartLabels = [], chartViews = [], chartRegs = [];
             
+            let totalViews = 0, totalRegs = regsSnap.size, chartLabels = [], chartViews = [], chartRegs = [];
+            let specialtyCounts = {}, yearCounts = {};
+
             eventsSnap.forEach(doc => {
                 const d = doc.data();
                 totalViews += (d.views || 0);
@@ -415,10 +614,23 @@
                 chartRegs.push(d.registrationsCount || 0);
             });
 
+            // تحليل المسجلين
+            regsSnap.forEach(doc => {
+                const d = doc.data();
+                // التخصصات
+                const spec = d.specialty || "غير محدد";
+                specialtyCounts[spec] = (specialtyCounts[spec] || 0) + 1;
+                // السنوات
+                const year = d.year || "غير محدد";
+                yearCounts[year] = (yearCounts[year] || 0) + 1;
+            });
+
+            // تحديث الأرقام
             document.getElementById('total-views').innerText = totalViews;
             document.getElementById('total-regs').innerText = totalRegs;
             document.getElementById('total-events').innerText = eventsSnap.size;
 
+            // 1. الرسم الرئيسي
             const ctx = document.getElementById('analyticsChart').getContext('2d');
             if(statsChart) statsChart.destroy();
             statsChart = new Chart(ctx, {
@@ -426,51 +638,119 @@
                 data: {
                     labels: chartLabels,
                     datasets: [
-                        { label: 'مشاهدات', data: chartViews, backgroundColor: 'rgba(59, 130, 246, 0.8)' }, 
-                        { label: 'تسجيلات', data: chartRegs, backgroundColor: 'rgba(16, 185, 129, 0.8)' }
+                        { label: 'مشاهدات', data: chartViews, backgroundColor: 'rgba(59, 130, 246, 0.7)' }, 
+                        { label: 'تسجيلات', data: chartRegs, backgroundColor: 'rgba(16, 185, 129, 0.7)' }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // 2. رسم التخصصات (Pie)
+            const ctxSpec = document.getElementById('specialtyChart').getContext('2d');
+            if(specialtyChart) specialtyChart.destroy();
+            specialtyChart = new Chart(ctxSpec, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(specialtyCounts),
+                    datasets: [{
+                        data: Object.values(specialtyCounts),
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+            });
+
+            // 3. رسم السنوات (Doughnut)
+            const ctxYear = document.getElementById('yearChart').getContext('2d');
+            if(yearChart) yearChart.destroy();
+            yearChart = new Chart(ctxYear, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(yearCounts),
+                    datasets: [{
+                        data: Object.values(yearCounts),
+                        backgroundColor: ['#0ea5e9', '#6366f1', '#84cc16', '#eab308', '#f43f5e']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
             });
         }
 
-        // جلب المسجلين وتحديث الجدول
+        // ==========================
+        // جدول المسجلين والتقارير
+        // ==========================
         window.fetchRegistrations = async () => {
             const tbody = document.getElementById('registrations-table-body');
             tbody.innerHTML = '<tr><td colspan="7" class="text-center p-6"><div class="loader mx-auto"></div></td></tr>';
             
             try {
+                // ملء قائمة الفعاليات للفلتر
+                const eventsSnapshot = await getDocs(collection(db, "events"));
+                const filterSelect = document.getElementById('filter-event');
+                filterSelect.innerHTML = '<option value="all">عرض جميع الفعاليات</option>';
+                eventsSnapshot.forEach(doc => {
+                    const d = doc.data();
+                    filterSelect.innerHTML += `<option value="${d.title}">${d.title}</option>`;
+                });
+
                 const q = query(collection(db, "registrations"), orderBy("timestamp", "desc"));
                 const snapshot = await getDocs(q);
-                tbody.innerHTML = '';
-                
-                if(snapshot.empty) { tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4 text-gray-500">لا يوجد مسجلين حتى الآن</td></tr>'; return; }
+                allRegistrations = [];
                 
                 snapshot.forEach(doc => {
-                    const d = doc.data();
-                    const date = d.timestamp ? new Date(d.timestamp.seconds * 1000).toLocaleDateString('ar-EG') : '-';
-                    
-                    // تنسيق الهاتف الثاني
-                    const phone2 = d.phone2 ? `<span dir="ltr">${d.phone2}</span>` : '<span class="text-gray-400">-</span>';
-
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-blue-50 transition border-b border-gray-50">
-                            <td class="px-4 py-3 font-medium text-gray-800">${d.name}</td>
-                            <td class="px-4 py-3 text-blue-600">${d.specialty || '-'}</td>
-                            <td class="px-4 py-3 text-gray-600">${d.year || '-'}</td>
-                            <td class="px-4 py-3 text-gray-700" dir="ltr">${d.phone}</td>
-                            <td class="px-4 py-3 text-gray-700">${phone2}</td>
-                            <td class="px-4 py-3 text-sm text-gray-500 max-w-[150px] truncate" title="${d.eventTitle}">${d.eventTitle}</td>
-                            <td class="px-4 py-3 text-xs text-gray-400">${date}</td>
-                        </tr>`;
+                    allRegistrations.push({ id: doc.id, ...doc.data() });
                 });
+
+                applyFilters();
+
             } catch (error) {
                 console.error(error);
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4 text-red-500">حدث خطأ في جلب البيانات. تأكد من الصلاحيات.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4 text-red-500">حدث خطأ.</td></tr>';
             }
         };
 
-        // تحميل الفعاليات (صفحة الزوار)
+        window.applyFilters = () => {
+            const filterEvent = document.getElementById('filter-event').value;
+            const searchTerm = document.getElementById('filter-search').value.toLowerCase();
+            const tbody = document.getElementById('registrations-table-body');
+            
+            let filtered = allRegistrations.filter(reg => {
+                const matchEvent = filterEvent === 'all' || reg.eventTitle === filterEvent;
+                const matchSearch = (reg.name && reg.name.toLowerCase().includes(searchTerm)) || 
+                                    (reg.phone && reg.phone.includes(searchTerm));
+                return matchEvent && matchSearch;
+            });
+
+            document.getElementById('regs-count').innerText = filtered.length;
+
+            if(filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4 text-gray-500">لا توجد نتائج</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map((d, index) => {
+                const date = d.timestamp ? new Date(d.timestamp.seconds * 1000).toLocaleDateString('ar-EG') : '-';
+                return `
+                    <tr class="hover:bg-blue-50 transition border-b border-gray-50">
+                        <td class="px-4 py-3 text-gray-400 num-font text-center">${index + 1}</td>
+                        <td class="px-4 py-3 font-medium text-gray-800">${d.name}</td>
+                        <td class="px-4 py-3 text-blue-600">${d.specialty || '-'}</td>
+                        <td class="px-4 py-3 text-gray-600">${d.year || '-'}</td>
+                        <td class="px-4 py-3 text-gray-700 num-font" dir="ltr">${d.phone}</td>
+                        <td class="px-4 py-3 text-sm text-gray-500 max-w-[150px] truncate">${d.eventTitle}</td>
+                        <td class="px-4 py-3 text-xs text-gray-400 no-print num-font">${date}</td>
+                    </tr>`;
+            }).join('');
+        };
+
+        window.printReport = () => {
+            document.getElementById('print-date').innerText = 'تاريخ التقرير: ' + new Date().toLocaleDateString('ar-EG');
+            window.print();
+        };
+
+        // ==========================
+        // وظائف الزوار (تحميل الفعاليات)
+        // ==========================
         async function loadEvents() {
             const grid = document.getElementById('events-grid');
             try {
@@ -484,7 +764,6 @@
                     const data = doc.data();
                     eventsData.push({id: doc.id, ...data});
                     
-                    // تنسيق التاريخ والوقت للعرض
                     const eventDate = new Date(data.startDate);
                     const dateStr = eventDate.toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long' });
                     const timeStr = eventDate.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
@@ -499,17 +778,13 @@
                             </div>
                             <div class="p-5 flex-grow flex flex-col">
                                 <h3 class="text-xl font-bold mb-1 text-gray-800 leading-snug line-clamp-2">${data.title}</h3>
-                                
-                                <!-- التوقيت والتاريخ الجديد -->
                                 <div class="flex items-center text-sm text-blue-600 mb-3 bg-blue-50 p-2 rounded-lg w-fit">
                                     <i class="far fa-calendar-alt ml-2"></i>
-                                    <span>${dateStr} - ${timeStr}</span>
+                                    <span class="num-font">${dateStr} - ${timeStr}</span>
                                 </div>
-
                                 <p class="text-gray-500 text-sm line-clamp-3 mb-4 leading-relaxed flex-grow">${data.description}</p>
-                                
                                 <div class="mt-auto pt-4 border-t border-gray-100 flex justify-between items-center">
-                                    <span class="text-xs text-gray-400"><i class="fas fa-eye ml-1"></i> ${data.views || 0}</span>
+                                    <span class="text-xs text-gray-400"><i class="fas fa-eye ml-1"></i> <span class="num-font">${data.views || 0}</span></span>
                                     <button onclick="openEventDetails('${doc.id}')" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition text-sm shadow-blue-200 shadow-lg hover:shadow-xl">تفاصيل</button>
                                 </div>
                             </div>
@@ -518,57 +793,43 @@
             } catch (e) { grid.innerHTML = '<div class="col-span-full text-center text-red-500">تأكد من تحديث قواعد Firestore!</div>'; }
         }
 
-        // فتح تفاصيل الفعالية
         window.openEventDetails = async (id) => {
             const event = eventsData.find(e => e.id === id);
             if(!event) return;
             
             updateDoc(doc(db, "events", id), { views: increment(1) });
             
-            // تعبئة البيانات
             document.getElementById('modal-img').src = event.imageUrl;
             document.getElementById('modal-title').innerText = event.title;
             document.getElementById('modal-desc').innerText = event.description;
             
-            // تعبئة التاريخ والروابط
             const eventDate = new Date(event.startDate);
-            const metaDiv = document.getElementById('modal-meta');
-            metaDiv.innerHTML = `
-                <span class="bg-gray-100 px-3 py-1 rounded-full flex items-center"><i class="far fa-calendar ml-2"></i> ${eventDate.toLocaleDateString('ar-EG')}</span>
-                <span class="bg-gray-100 px-3 py-1 rounded-full flex items-center"><i class="far fa-clock ml-2"></i> ${eventDate.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'})}</span>
+            document.getElementById('modal-meta').innerHTML = `
+                <span class="bg-gray-100 px-3 py-1 rounded-full flex items-center"><i class="far fa-calendar ml-2"></i> <span class="num-font">${eventDate.toLocaleDateString('ar-EG')}</span></span>
+                <span class="bg-gray-100 px-3 py-1 rounded-full flex items-center"><i class="far fa-clock ml-2"></i> <span class="num-font">${eventDate.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'})}</span></span>
             `;
 
-            // أزرار الروابط الإضافية
             const linksDiv = document.getElementById('modal-links');
             linksDiv.innerHTML = '';
-            
-            if (event.mapLink) {
-                linksDiv.innerHTML += `<a href="${event.mapLink}" target="_blank" class="bg-green-50 text-green-700 border border-green-200 px-4 py-2 rounded-lg hover:bg-green-100 transition flex items-center text-sm font-bold"><i class="fas fa-map-marker-alt ml-2"></i> الموقع على الخريطة</a>`;
-            }
-            if (event.extraLink) {
-                linksDiv.innerHTML += `<a href="${event.extraLink}" target="_blank" class="bg-blue-50 text-blue-700 border border-blue-200 px-4 py-2 rounded-lg hover:bg-blue-100 transition flex items-center text-sm font-bold"><i class="fas fa-external-link-alt ml-2"></i> رابط إضافي</a>`;
-            }
+            if (event.mapLink) linksDiv.innerHTML += `<a href="${event.mapLink}" target="_blank" class="bg-green-50 text-green-700 border border-green-200 px-4 py-2 rounded-lg hover:bg-green-100 transition text-sm font-bold"><i class="fas fa-map-marker-alt ml-2"></i> الموقع</a>`;
+            if (event.extraLink) linksDiv.innerHTML += `<a href="${event.extraLink}" target="_blank" class="bg-blue-50 text-blue-700 border border-blue-200 px-4 py-2 rounded-lg hover:bg-blue-100 transition text-sm font-bold"><i class="fas fa-external-link-alt ml-2"></i> رابط</a>`;
 
             document.getElementById('reg-event-id').value = id;
             document.getElementById('reg-event-title').value = event.title;
             
             document.getElementById('details-modal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // منع التمرير في الخلفية
+            document.body.style.overflow = 'hidden';
         };
 
         window.closeModal = () => {
             document.getElementById('details-modal').classList.add('hidden');
             document.body.style.overflow = 'auto';
-            // إعادة تعيين النموذج
             document.getElementById('visitor-reg-form').reset();
             document.getElementById('reg-specialty-other').classList.add('hidden');
         };
 
-        // إرسال نموذج التسجيل (محدث)
         document.getElementById('visitor-reg-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            // تحديد التخصص النهائي (إما المختار أو المكتوب يدوياً)
             const specSelect = document.getElementById('reg-specialty').value;
             const specOther = document.getElementById('reg-specialty-other').value;
             const finalSpecialty = specSelect === 'other' ? specOther : specSelect;
@@ -585,24 +846,17 @@
                     eventTitle: document.getElementById('reg-event-title').value,
                     name: document.getElementById('reg-name').value,
                     phone: document.getElementById('reg-phone').value,
-                    phone2: document.getElementById('reg-phone2').value || "", // الهاتف الثاني
-                    specialty: finalSpecialty, // التخصص
-                    year: document.getElementById('reg-year').value, // السنة الدراسية
+                    phone2: document.getElementById('reg-phone2').value || "",
+                    specialty: finalSpecialty,
+                    year: document.getElementById('reg-year').value,
                     timestamp: serverTimestamp()
                 });
                 
                 await updateDoc(doc(db, "events", document.getElementById('reg-event-id').value), { registrationsCount: increment(1) });
                 
-                Swal.fire({
-                    icon: 'success',
-                    title: 'تم التسجيل بنجاح!',
-                    text: 'شكراً لك، تم حفظ بياناتك.',
-                    confirmButtonColor: '#3b82f6'
-                });
-                
+                Swal.fire({ icon: 'success', title: 'تم التسجيل بنجاح!', confirmButtonColor: '#3b82f6' });
                 closeModal();
             } catch (err) { 
-                console.error(err);
                 Swal.fire('خطأ', 'فشل التسجيل، حاول مرة أخرى', 'error'); 
             } finally {
                 submitBtn.disabled = false; submitBtn.innerText = originalText;
