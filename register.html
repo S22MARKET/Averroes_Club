@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الأعضاء - نادي AVVERROES</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #003366 0%, #0055a5 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 20px 0;
+        }
+        .register-card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .register-header {
+            background-color: #fff;
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        .brand-title {
+            color: #003366;
+            font-weight: 800;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        .register-body {
+            padding: 40px;
+            background-color: #fff;
+        }
+        /* تنسيق الحقول العائمة (Floating Labels) لمظهر احترافي */
+        .form-floating > label {
+            right: 0;
+            left: auto;
+            padding-right: 1.5rem;
+        }
+        .form-floating > .form-control:focus ~ label,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label {
+            transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+            color: #003366;
+        }
+        .btn-register {
+            background: linear-gradient(to right, #003366, #0055a5);
+            border: none;
+            padding: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 51, 102, 0.3);
+        }
+        @media (max-width: 768px) {
+            .register-body {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="card register-card">
+                    <div class="register-header">
+                        <div class="brand-title">
+                            <i class="bi bi-mortarboard-fill me-2"></i> نادي AVVERROES
+                        </div>
+                        <p class="text-muted mb-0">انضم إلينا وسجل بياناتك للمشاركة في فعالياتنا</p>
+                    </div>
+                    <div class="card-body register-body">
+                        <form class="row g-3 needs-validation" novalidate>
+                            
+                            <div class="col-md-6">
+                                <div class="form-floating mb-2">
+                                    <input type="text" class="form-control" id="firstName" placeholder="الاسم" required>
+                                    <label for="firstName">الاسم الشخصي</label>
+                                    <div class="invalid-feedback">يرجى إدخال الاسم.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-2">
+                                    <input type="text" class="form-control" id="lastName" placeholder="اللقب" required>
+                                    <label for="lastName">اللقب العائلي</label>
+                                    <div class="invalid-feedback">يرجى إدخال اللقب.</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-floating mb-2">
+                                    <input type="tel" class="form-control text-start" dir="ltr" id="phoneNumber" placeholder="رقم الهاتف" pattern="[0-9]+" required>
+                                    <label for="phoneNumber">رقم الهاتف (مثال: 0661234567)</label>
+                                    <div class="invalid-feedback">يرجى إدخال رقم هاتف صحيح.</div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating mb-2">
+                                    <select class="form-select" id="studyYear" required>
+                                        <option selected disabled value="">اختر السنة...</option>
+                                        <option value="السنة الأولى">السنة الأولى</option>
+                                        <option value="السنة الثانية">السنة الثانية</option>
+                                        <option value="السنة الثالثة">السنة الثالثة</option>
+                                        <option value="ماستر 1">ماستر 1</option>
+                                        <option value="ماستر 2">ماستر 2</option>
+                                        <option value="تخرج">متخرج</option>
+                                    </select>
+                                    <label for="studyYear">السنة الدراسية</label>
+                                    <div class="invalid-feedback">اختر السنة الدراسية.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-4">
+                                    <input type="text" class="form-control" id="specialization" placeholder="التخصص" required>
+                                    <label for="specialization">التخصص الجامعي</label>
+                                    <div class="invalid-feedback">يرجى ذكر التخصص.</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <button class="btn btn-primary w-100 btn-register" type="submit">
+                                    تأكيد التسجيل <i class="bi bi-check-circle-fill ms-2"></i>
+                                </button>
+                            </div>
+                            <p class="text-center text-muted mt-3 mb-0" style="font-size: 0.9rem;">
+                                بتسجيلك أنت توافق على شروط وأحكام النادي.
+                            </p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // تفعيل التحقق الشكلي للنموذج
+        (() => {
+            'use strict'
+            const forms = document.querySelectorAll('.needs-validation')
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+    </script>
+</body>
+</html>
